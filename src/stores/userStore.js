@@ -45,7 +45,7 @@ export const useUserStore = defineStore('users', {
         isLocal: true // Marcar como dato local
       }
       
-      this.users.unshift(newUser)
+      this.users.push(newUser)
       return newUser
     },
 

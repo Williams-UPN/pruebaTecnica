@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import UsersList from '../views/UsersList.vue'
-import UserForm from '../views/UserForm.vue'
 import UserDetail from '../views/UserDetail.vue'
 
 const routes = [
@@ -17,29 +16,12 @@ const routes = [
     }
   },
   {
-    path: '/users/new',
-    name: 'UserCreate',
-    component: UserForm,
-    meta: {
-      title: 'Crear Usuario'
-    }
-  },
-  {
     path: '/users/:id',
     name: 'UserDetail',
     component: UserDetail,
     props: true,
     meta: {
       title: 'Detalle del Usuario'
-    }
-  },
-  {
-    path: '/users/:id/edit',
-    name: 'UserEdit',
-    component: UserForm,
-    props: true,
-    meta: {
-      title: 'Editar Usuario'
     }
   },
   {

@@ -35,7 +35,6 @@ export function useUsers() {
     try {
       const newUser = userStore.addUser(userData)
       notificationStore.success(`Usuario "${newUser.name}" creado exitosamente`)
-      router.push('/users')
       return newUser
     } catch (error) {
       console.error('Error in createUser:', error)
@@ -50,7 +49,6 @@ export function useUsers() {
       const updatedUser = userStore.updateUser(id, userData)
       if (updatedUser) {
         notificationStore.success(`Usuario "${updatedUser.name}" actualizado exitosamente`)
-        router.push('/users')
         return updatedUser
       } else {
         throw new Error('Usuario no encontrado')

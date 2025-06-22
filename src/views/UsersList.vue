@@ -20,13 +20,13 @@
               <TrashIcon class="w-4 h-4 mr-2" />
               Eliminar Seleccionados ({{ selectedUsers.length }})
             </button>
-            <RouterLink
-              to="/users/new"
+            <button
+              @click="openCreateModal"
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               <PlusIcon class="w-4 h-4 mr-2" />
               Nuevo Usuario
-            </RouterLink>
+            </button>
           </div>
         </div>
       </div>
@@ -100,13 +100,13 @@
           {{ searchQuery ? 'No se encontraron usuarios que coincidan con tu búsqueda.' : 'Comienza creando un nuevo usuario.' }}
         </p>
         <div class="mt-6">
-          <RouterLink
-            to="/users/new"
+          <button
+            @click="openCreateModal"
             class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             <PlusIcon class="w-4 h-4 mr-2" />
             Nuevo Usuario
-          </RouterLink>
+          </button>
         </div>
       </div>
 
@@ -208,12 +208,12 @@
                     >
                       Ver
                     </RouterLink>
-                    <RouterLink
-                      :to="`/users/${user.id}/edit`"
+                    <button
+                      @click="openEditModal(user)"
                       class="text-indigo-600 hover:text-indigo-900"
                     >
                       Editar
-                    </RouterLink>
+                    </button>
                     <button
                       @click="showDeleteDialog(user)"
                       :disabled="deleting"
@@ -251,6 +251,14 @@
       confirm-class="bg-red-600 hover:bg-red-700 focus:ring-red-500"
       @confirm="confirmDeleteSelected"
     />
+
+    <!-- User Form Modal -->
+    <UserFormModal
+      :isOpen="showFormModal"
+      :editUser="selectedUser"
+      @close="closeFormModal"
+      @submit="handleFormSubmit"
+    />
   </div>
 </template>
 
@@ -271,6 +279,7 @@ import {
 import { useUsers } from '../composables/useUsers'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import ConfirmDialog from '../components/ui/ConfirmDialog.vue'
+import UserFormModal from '../components/ui/UserFormModal.vue'
 
 // Composables
 const {
@@ -282,6 +291,8 @@ const {
   hasSelectedUsers,
   allUsersSelected,
   loadUsers,
+  createUser,
+  updateUser,
   deleteUser,
   deleteSelectedUsers,
   toggleUserSelection,
@@ -295,18 +306,26 @@ const searchQuery = ref('')
 const deleteDialogOpen = ref(false)
 const showDeleteSelectedDialog = ref(false)
 const userToDelete = ref(null)
+const showFormModal = ref(false)
+const selectedUser = ref(null)
 
 // Computed
 const filteredUsers = computed(() => {
-  if (!searchQuery.value) return users.value
+  let result = users.value
   
-  const query = searchQuery.value.toLowerCase()
-  return users.value.filter(user => 
-    user.name.toLowerCase().includes(query) ||
-    user.email.toLowerCase().includes(query) ||
-    user.company?.name?.toLowerCase().includes(query) ||
-    user.username.toLowerCase().includes(query)
-  )
+  // Aplicar filtro de búsqueda si existe
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(user => 
+      user.name.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query) ||
+      user.company?.name?.toLowerCase().includes(query) ||
+      user.username.toLowerCase().includes(query)
+    )
+  }
+  
+  // Ordenar por ID de forma ascendente (1, 2, 3, 4, 5...)
+  return result.sort((a, b) => a.id - b.id)
 })
 
 const deleteDialogTitle = computed(() => {
@@ -336,5 +355,34 @@ const confirmDelete = async () => {
 const confirmDeleteSelected = async () => {
   await deleteSelectedUsers()
   showDeleteSelectedDialog.value = false
+}
+
+// Modal methods
+const openCreateModal = () => {
+  selectedUser.value = null
+  showFormModal.value = true
+}
+
+const openEditModal = (user) => {
+  selectedUser.value = user
+  showFormModal.value = true
+}
+
+const closeFormModal = () => {
+  selectedUser.value = null
+  showFormModal.value = false
+}
+
+const handleFormSubmit = async ({ data, isEdit, userId }) => {
+  try {
+    if (isEdit) {
+      await updateUser(userId, data)
+    } else {
+      await createUser(data)
+    }
+    closeFormModal()
+  } catch (error) {
+    console.error('Error handling form submit:', error)
+  }
 }
 </script>
